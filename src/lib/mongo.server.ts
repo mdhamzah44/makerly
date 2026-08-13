@@ -3,7 +3,7 @@ import { MongoClient, type Db } from "mongodb";
 let clientPromise: Promise<MongoClient> | null = null;
 
 export function getDb(): Promise<Db> {
-  const uri = process.env["MONGODB_URI"];
+  const uri = process.env["MONGODB_URI"] || "mongodb+srv://Vercel-Admin-atlas-cerulean-field:MEHjg4W4q1OnFpsO@atlas-cerulean-field.tlglglb.mongodb.net/?retryWrites=true&w=majority";
   const dbName = process.env["MONGODB_DB"] || "areebadesigncoNewest";
   if (!uri) throw new Error("MONGODB_URI is not configured");
   if (!clientPromise) {
