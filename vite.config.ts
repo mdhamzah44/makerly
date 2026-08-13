@@ -12,14 +12,13 @@ export default defineConfig({
     // nitro/vite builds from this
     server: { entry: "server" },
   },
-  vite: {
-    ssr: {
-      // @floating-ui/* (pulled in by Radix popper/popover/dropdown/tooltip/select) ships a UMD
-      // fallback build alongside its ESM build. When Nitro externalizes it for the server bundle
-      // instead of letting Vite process it, the generated CJS-interop chunk ends up missing its
-      // helper at runtime ("__commonJSMin is not a function") on every request that renders a
-      // Radix popper-based component. Forcing it through Vite's own SSR bundling avoids that.
-      noExternal: [/^@floating-ui\//],
-    },
+  // @floating-ui/* (pulled in by Radix popper/popover/dropdown/tooltip/select) ships a UMD
+  // fallback build alongside its ESM build. Nitro's own dependency-tracing step externalizes it
+  // into a "_libs" chunk with a broken CJS-interop wrapper ("__commonJSMin is not a function") on
+  // every request that renders a Radix popper-based component. `nitro.noExternals` — NOT Vite's
+  // `ssr.noExternal`, which only affects Vite's own SSR graph and doesn't reach this step — stops
+  // Nitro from externalizing it, bundling it directly into the server chunk instead.
+  nitro: {
+    noExternals: [/^@floating-ui\//],
   },
 });
