@@ -1,6 +1,6 @@
 [build]
   command = "NITRO_PRESET=netlify bun run build"
-  publish = "dist"
+  publish = "dist/client"
 
 [build.environment]
   NODE_VERSION = "20"
