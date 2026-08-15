@@ -10,189 +10,108 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AdminRouteImport } from './routes/_admin'
-import { Route as AdminAdminsRouteImport } from './routes/_admin/admins'
-import { Route as AdminAuditRouteImport } from './routes/_admin/audit'
-import { Route as AdminCategoriesRouteImport } from './routes/_admin/categories'
-import { Route as AdminConversationsRouteImport } from './routes/_admin/conversations'
-import { Route as AdminDashboardRouteImport } from './routes/_admin/dashboard'
-import { Route as AdminMediaRouteImport } from './routes/_admin/media'
-import { Route as AdminPagesRouteImport } from './routes/_admin/pages'
-import { Route as AdminProductsRouteImport } from './routes/_admin/products'
-import { Route as AdminReviewsRouteImport } from './routes/_admin/reviews'
-import { Route as AdminSellersRouteImport } from './routes/_admin/sellers'
-import { Route as AdminSettingsRouteImport } from './routes/_admin/settings'
-import { Route as AdminUsersRouteImport } from './routes/_admin/users'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard.index'
+import { Route as DashboardAccountRouteImport } from './routes/dashboard.account'
+import { Route as DashboardAdminsRouteImport } from './routes/dashboard.admins'
+import { Route as DashboardSecurityRouteImport } from './routes/dashboard.security'
+import { Route as DashboardDataEntityRouteImport } from './routes/dashboard.data.$entity'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/_admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminAdminsRoute = AdminAdminsRouteImport.update({
-  id: '/admins',
-  path: '/admins',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminAuditRoute = AdminAuditRouteImport.update({
-  id: '/audit',
-  path: '/audit',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminCategoriesRoute = AdminCategoriesRouteImport.update({
-  id: '/categories',
-  path: '/categories',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminConversationsRoute = AdminConversationsRouteImport.update({
-  id: '/conversations',
-  path: '/conversations',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminDashboardRoute = AdminDashboardRouteImport.update({
+const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AdminRoute,
+  getParentRoute: () => rootRouteImport,
 } as any)
-const AdminMediaRoute = AdminMediaRouteImport.update({
-  id: '/media',
-  path: '/media',
-  getParentRoute: () => AdminRoute,
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => DashboardRoute,
 } as any)
-const AdminPagesRoute = AdminPagesRouteImport.update({
-  id: '/pages',
-  path: '/pages',
-  getParentRoute: () => AdminRoute,
+const DashboardAccountRoute = DashboardAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => DashboardRoute,
 } as any)
-const AdminProductsRoute = AdminProductsRouteImport.update({
-  id: '/products',
-  path: '/products',
-  getParentRoute: () => AdminRoute,
+const DashboardAdminsRoute = DashboardAdminsRouteImport.update({
+  id: '/admins',
+  path: '/admins',
+  getParentRoute: () => DashboardRoute,
 } as any)
-const AdminReviewsRoute = AdminReviewsRouteImport.update({
-  id: '/reviews',
-  path: '/reviews',
-  getParentRoute: () => AdminRoute,
+const DashboardSecurityRoute = DashboardSecurityRouteImport.update({
+  id: '/security',
+  path: '/security',
+  getParentRoute: () => DashboardRoute,
 } as any)
-const AdminSellersRoute = AdminSellersRouteImport.update({
-  id: '/sellers',
-  path: '/sellers',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminSettingsRoute = AdminSettingsRouteImport.update({
-  id: '/settings',
-  path: '/settings',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRoute,
+const DashboardDataEntityRoute = DashboardDataEntityRouteImport.update({
+  id: '/data/$entity',
+  path: '/data/$entity',
+  getParentRoute: () => DashboardRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admins': typeof AdminAdminsRoute
-  '/audit': typeof AdminAuditRoute
-  '/categories': typeof AdminCategoriesRoute
-  '/conversations': typeof AdminConversationsRoute
-  '/dashboard': typeof AdminDashboardRoute
-  '/media': typeof AdminMediaRoute
-  '/pages': typeof AdminPagesRoute
-  '/products': typeof AdminProductsRoute
-  '/reviews': typeof AdminReviewsRoute
-  '/sellers': typeof AdminSellersRoute
-  '/settings': typeof AdminSettingsRoute
-  '/users': typeof AdminUsersRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/account': typeof DashboardAccountRoute
+  '/dashboard/admins': typeof DashboardAdminsRoute
+  '/dashboard/security': typeof DashboardSecurityRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/data/$entity': typeof DashboardDataEntityRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admins': typeof AdminAdminsRoute
-  '/audit': typeof AdminAuditRoute
-  '/categories': typeof AdminCategoriesRoute
-  '/conversations': typeof AdminConversationsRoute
-  '/dashboard': typeof AdminDashboardRoute
-  '/media': typeof AdminMediaRoute
-  '/pages': typeof AdminPagesRoute
-  '/products': typeof AdminProductsRoute
-  '/reviews': typeof AdminReviewsRoute
-  '/sellers': typeof AdminSellersRoute
-  '/settings': typeof AdminSettingsRoute
-  '/users': typeof AdminUsersRoute
+  '/dashboard/account': typeof DashboardAccountRoute
+  '/dashboard/admins': typeof DashboardAdminsRoute
+  '/dashboard/security': typeof DashboardSecurityRoute
+  '/dashboard': typeof DashboardIndexRoute
+  '/dashboard/data/$entity': typeof DashboardDataEntityRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/_admin': typeof AdminRouteWithChildren
-  '/_admin/admins': typeof AdminAdminsRoute
-  '/_admin/audit': typeof AdminAuditRoute
-  '/_admin/categories': typeof AdminCategoriesRoute
-  '/_admin/conversations': typeof AdminConversationsRoute
-  '/_admin/dashboard': typeof AdminDashboardRoute
-  '/_admin/media': typeof AdminMediaRoute
-  '/_admin/pages': typeof AdminPagesRoute
-  '/_admin/products': typeof AdminProductsRoute
-  '/_admin/reviews': typeof AdminReviewsRoute
-  '/_admin/sellers': typeof AdminSellersRoute
-  '/_admin/settings': typeof AdminSettingsRoute
-  '/_admin/users': typeof AdminUsersRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/dashboard/account': typeof DashboardAccountRoute
+  '/dashboard/admins': typeof DashboardAdminsRoute
+  '/dashboard/security': typeof DashboardSecurityRoute
+  '/dashboard/': typeof DashboardIndexRoute
+  '/dashboard/data/$entity': typeof DashboardDataEntityRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/admins'
-    | '/audit'
-    | '/categories'
-    | '/conversations'
     | '/dashboard'
-    | '/media'
-    | '/pages'
-    | '/products'
-    | '/reviews'
-    | '/sellers'
-    | '/settings'
-    | '/users'
+    | '/dashboard/account'
+    | '/dashboard/admins'
+    | '/dashboard/security'
+    | '/dashboard/'
+    | '/dashboard/data/$entity'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/admins'
-    | '/audit'
-    | '/categories'
-    | '/conversations'
+    | '/dashboard/account'
+    | '/dashboard/admins'
+    | '/dashboard/security'
     | '/dashboard'
-    | '/media'
-    | '/pages'
-    | '/products'
-    | '/reviews'
-    | '/sellers'
-    | '/settings'
-    | '/users'
+    | '/dashboard/data/$entity'
   id:
     | '__root__'
     | '/'
-    | '/_admin'
-    | '/_admin/admins'
-    | '/_admin/audit'
-    | '/_admin/categories'
-    | '/_admin/conversations'
-    | '/_admin/dashboard'
-    | '/_admin/media'
-    | '/_admin/pages'
-    | '/_admin/products'
-    | '/_admin/reviews'
-    | '/_admin/sellers'
-    | '/_admin/settings'
-    | '/_admin/users'
+    | '/dashboard'
+    | '/dashboard/account'
+    | '/dashboard/admins'
+    | '/dashboard/security'
+    | '/dashboard/'
+    | '/dashboard/data/$entity'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRouteWithChildren
+  DashboardRoute: typeof DashboardRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -204,135 +123,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_admin': {
-      id: '/_admin'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/_admin/admins': {
-      id: '/_admin/admins'
-      path: '/admins'
-      fullPath: '/admins'
-      preLoaderRoute: typeof AdminAdminsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_admin/audit': {
-      id: '/_admin/audit'
-      path: '/audit'
-      fullPath: '/audit'
-      preLoaderRoute: typeof AdminAuditRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_admin/categories': {
-      id: '/_admin/categories'
-      path: '/categories'
-      fullPath: '/categories'
-      preLoaderRoute: typeof AdminCategoriesRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_admin/conversations': {
-      id: '/_admin/conversations'
-      path: '/conversations'
-      fullPath: '/conversations'
-      preLoaderRoute: typeof AdminConversationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_admin/dashboard': {
-      id: '/_admin/dashboard'
+    '/dashboard': {
+      id: '/dashboard'
       path: '/dashboard'
       fullPath: '/dashboard'
-      preLoaderRoute: typeof AdminDashboardRouteImport
-      parentRoute: typeof AdminRoute
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
     }
-    '/_admin/media': {
-      id: '/_admin/media'
-      path: '/media'
-      fullPath: '/media'
-      preLoaderRoute: typeof AdminMediaRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/_admin/pages': {
-      id: '/_admin/pages'
-      path: '/pages'
-      fullPath: '/pages'
-      preLoaderRoute: typeof AdminPagesRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/account': {
+      id: '/dashboard/account'
+      path: '/account'
+      fullPath: '/dashboard/account'
+      preLoaderRoute: typeof DashboardAccountRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/_admin/products': {
-      id: '/_admin/products'
-      path: '/products'
-      fullPath: '/products'
-      preLoaderRoute: typeof AdminProductsRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/admins': {
+      id: '/dashboard/admins'
+      path: '/admins'
+      fullPath: '/dashboard/admins'
+      preLoaderRoute: typeof DashboardAdminsRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/_admin/reviews': {
-      id: '/_admin/reviews'
-      path: '/reviews'
-      fullPath: '/reviews'
-      preLoaderRoute: typeof AdminReviewsRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/security': {
+      id: '/dashboard/security'
+      path: '/security'
+      fullPath: '/dashboard/security'
+      preLoaderRoute: typeof DashboardSecurityRouteImport
+      parentRoute: typeof DashboardRoute
     }
-    '/_admin/sellers': {
-      id: '/_admin/sellers'
-      path: '/sellers'
-      fullPath: '/sellers'
-      preLoaderRoute: typeof AdminSellersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_admin/settings': {
-      id: '/_admin/settings'
-      path: '/settings'
-      fullPath: '/settings'
-      preLoaderRoute: typeof AdminSettingsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/_admin/users': {
-      id: '/_admin/users'
-      path: '/users'
-      fullPath: '/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
+    '/dashboard/data/$entity': {
+      id: '/dashboard/data/$entity'
+      path: '/data/$entity'
+      fullPath: '/dashboard/data/$entity'
+      preLoaderRoute: typeof DashboardDataEntityRouteImport
+      parentRoute: typeof DashboardRoute
     }
   }
 }
 
-interface AdminRouteChildren {
-  AdminAdminsRoute: typeof AdminAdminsRoute
-  AdminAuditRoute: typeof AdminAuditRoute
-  AdminCategoriesRoute: typeof AdminCategoriesRoute
-  AdminConversationsRoute: typeof AdminConversationsRoute
-  AdminDashboardRoute: typeof AdminDashboardRoute
-  AdminMediaRoute: typeof AdminMediaRoute
-  AdminPagesRoute: typeof AdminPagesRoute
-  AdminProductsRoute: typeof AdminProductsRoute
-  AdminReviewsRoute: typeof AdminReviewsRoute
-  AdminSellersRoute: typeof AdminSellersRoute
-  AdminSettingsRoute: typeof AdminSettingsRoute
-  AdminUsersRoute: typeof AdminUsersRoute
+interface DashboardRouteChildren {
+  DashboardAccountRoute: typeof DashboardAccountRoute
+  DashboardAdminsRoute: typeof DashboardAdminsRoute
+  DashboardSecurityRoute: typeof DashboardSecurityRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
+  DashboardDataEntityRoute: typeof DashboardDataEntityRoute
 }
 
-const AdminRouteChildren: AdminRouteChildren = {
-  AdminAdminsRoute: AdminAdminsRoute,
-  AdminAuditRoute: AdminAuditRoute,
-  AdminCategoriesRoute: AdminCategoriesRoute,
-  AdminConversationsRoute: AdminConversationsRoute,
-  AdminDashboardRoute: AdminDashboardRoute,
-  AdminMediaRoute: AdminMediaRoute,
-  AdminPagesRoute: AdminPagesRoute,
-  AdminProductsRoute: AdminProductsRoute,
-  AdminReviewsRoute: AdminReviewsRoute,
-  AdminSellersRoute: AdminSellersRoute,
-  AdminSettingsRoute: AdminSettingsRoute,
-  AdminUsersRoute: AdminUsersRoute,
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardAccountRoute: DashboardAccountRoute,
+  DashboardAdminsRoute: DashboardAdminsRoute,
+  DashboardSecurityRoute: DashboardSecurityRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
+  DashboardDataEntityRoute: DashboardDataEntityRoute,
 }
 
-const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
+  DashboardRoute: DashboardRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
