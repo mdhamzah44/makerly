@@ -1,11 +1,11 @@
 [build]
   command = "NITRO_PRESET=netlify bun run build"
-  publish = "dist/client"
-
+  publish = "dist"
+ 
 [build.environment]
   NODE_VERSION = "20"
   NITRO_PRESET = "netlify"
-
+ 
 [[redirects]]
   from = "/*"
   to = "/.netlify/functions/server"
