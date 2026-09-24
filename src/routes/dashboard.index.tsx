@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Banknote,
+  Database,
   PackageSearch,
   ShoppingBag,
   Store,
@@ -118,6 +119,8 @@ function Overview() {
             : ""}
         </p>
       </div>
+
+      {data?.shards ? <ShardStatusStrip shards={data.shards} /> : null}
 
       {/* Primary KPIs */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -314,6 +317,44 @@ function Overview() {
             </div>
           </div>
         ))}
+      </div>
+    </div>
+  );
+}
+
+/** Compact strip showing whether the 8 MongoDB shards (+ the draining
+ *  primary cluster) backing `orders`/`users` are reachable. Hidden
+ *  entirely when MONGO_SHARD_URLS isn't set, so this is a no-op on any
+ *  deployment that hasn't turned sharding on. */
+function ShardStatusStrip({ shards }: { shards: NonNullable<Stats["shards"]> }) {
+  if (!shards.configured) return null;
+  const downShards = shards.shards.filter((s) => !s.ok);
+  const primaryDown = shards.primary ? !shards.primary.ok : false;
+  const allOk = downShards.length === 0 && !primaryDown;
+
+  return (
+    <div className="surface-card flex flex-wrap items-center gap-3 p-3">
+      <span
+        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+          allOk ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
+        }`}
+      >
+        <Database className="h-4 w-4" />
+      </span>
+      <div className="min-w-0">
+        <p className="text-sm font-medium">
+          {allOk
+            ? `8-way sharding online — ${shards.shardedCollections.join(", ")}`
+            : `${downShards.length + (primaryDown ? 1 : 0)} of ${shards.shards.length + 1} clusters unreachable`}
+        </p>
+        <p className="truncate text-xs text-muted-foreground">
+          {shards.shards
+            .map((s) => `shard ${s.index}: ${s.ok ? `${s.latencyMs}ms` : "down"}`)
+            .join(" · ")}
+          {shards.primary
+            ? ` · primary: ${shards.primary.ok ? `${shards.primary.latencyMs}ms` : "down"}`
+            : " · primary: not configured"}
+        </p>
       </div>
     </div>
   );

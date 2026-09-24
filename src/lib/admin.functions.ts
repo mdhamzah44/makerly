@@ -31,6 +31,7 @@ import {
   listEntity,
   overviewStats,
   patchDoc,
+  shardHealth,
 } from "./admin-data.server";
 import { sendAdminAlertEmail, sendAdminOtpEmail } from "./email.server";
 import { isValidEmail } from "./password";
@@ -222,8 +223,8 @@ export const signOutOthers = createServerFn({ method: "POST" }).handler(async ()
 
 export const statsOverview = createServerFn({ method: "GET" }).handler(async () => {
   await requireAdmin();
-  const [stats, health] = await Promise.all([overviewStats(), dbHealth()]);
-  return { ...stats, health };
+  const [stats, health, shards] = await Promise.all([overviewStats(), dbHealth(), shardHealth()]);
+  return { ...stats, health, shards };
 });
 
 export const listRecords = createServerFn({ method: "POST" })
