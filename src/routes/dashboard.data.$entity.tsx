@@ -1,7 +1,7 @@
 import { createFileRoute, useParams } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Download, Loader2, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -147,6 +147,22 @@ function EntityBrowser() {
     staleTime: 30_000,
     enabled: !!def,
   });
+
+  // `shardErrors` means this list is a PARTIAL result — one or more of the
+  // 8 shards (or primary) couldn't be reached, so rows may be missing.
+  // Toast once per distinct error set rather than re-toasting on every
+  // background refetch of the same failure.
+  const lastShardErrorSig = useRef<string | null>(null);
+  useEffect(() => {
+    const errs = data?.shardErrors;
+    const sig = errs?.length ? errs.join("|") : null;
+    if (sig && sig !== lastShardErrorSig.current) {
+      toast.error(`This list is incomplete — ${errs!.length} data source(s) unreachable`, {
+        description: errs![0],
+      });
+    }
+    lastShardErrorSig.current = sig;
+  }, [data?.shardErrors]);
 
   const listFields = useMemo(() => (def?.fields ?? []).filter((f) => f.list).slice(0, 6), [def]);
   const editableFields = useMemo(() => (def?.fields ?? []).filter((f) => f.editable), [def]);

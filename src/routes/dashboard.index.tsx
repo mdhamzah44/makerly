@@ -120,7 +120,9 @@ function Overview() {
         </p>
       </div>
 
-      {data?.shards ? <ShardStatusStrip shards={data.shards} /> : null}
+      {data?.shards ? (
+        <ShardStatusStrip shards={data.shards} queryErrors={data.shardErrors} />
+      ) : null}
 
       {/* Primary KPIs */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -326,26 +328,41 @@ function Overview() {
  *  primary cluster) backing `orders`/`users` are reachable. Hidden
  *  entirely when MONGO_SHARD_URLS isn't set, so this is a no-op on any
  *  deployment that hasn't turned sharding on. */
-function ShardStatusStrip({ shards }: { shards: NonNullable<Stats["shards"]> }) {
+function ShardStatusStrip({
+  shards,
+  queryErrors,
+}: {
+  shards: NonNullable<Stats["shards"]>;
+  queryErrors: Stats["shardErrors"];
+}) {
   if (!shards.configured) return null;
   const downShards = shards.shards.filter((s) => !s.ok);
   const primaryDown = shards.primary ? !shards.primary.ok : false;
   const allOk = downShards.length === 0 && !primaryDown;
+  // A shard can ping fine (TCP/auth reachable) but still fail the actual
+  // orders/users query above — e.g. the DB user's role doesn't grant read
+  // on this specific database on that cluster. Show both, they point to
+  // different fixes.
+  const hasQueryErrors = Boolean(queryErrors?.length);
 
   return (
-    <div className="surface-card flex flex-wrap items-center gap-3 p-3">
+    <div className="surface-card flex flex-wrap items-start gap-3 p-3">
       <span
         className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-          allOk ? "bg-success/15 text-success" : "bg-destructive/15 text-destructive"
+          allOk && !hasQueryErrors
+            ? "bg-success/15 text-success"
+            : "bg-destructive/15 text-destructive"
         }`}
       >
         <Database className="h-4 w-4" />
       </span>
-      <div className="min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="text-sm font-medium">
-          {allOk
+          {allOk && !hasQueryErrors
             ? `8-way sharding online — ${shards.shardedCollections.join(", ")}`
-            : `${downShards.length + (primaryDown ? 1 : 0)} of ${shards.shards.length + 1} clusters unreachable`}
+            : allOk
+              ? "All shards reachable, but some queries are failing"
+              : `${downShards.length + (primaryDown ? 1 : 0)} of ${shards.shards.length + 1} clusters unreachable`}
         </p>
         <p className="truncate text-xs text-muted-foreground">
           {shards.shards
@@ -355,6 +372,15 @@ function ShardStatusStrip({ shards }: { shards: NonNullable<Stats["shards"]> }) 
             ? ` · primary: ${shards.primary.ok ? `${shards.primary.latencyMs}ms` : "down"}`
             : " · primary: not configured"}
         </p>
+        {hasQueryErrors ? (
+          <ul className="mt-1 space-y-0.5 text-xs text-destructive">
+            {queryErrors!.slice(0, 4).map((e) => (
+              <li key={e} className="truncate">
+                {e}
+              </li>
+            ))}
+          </ul>
+        ) : null}
       </div>
     </div>
   );

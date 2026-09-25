@@ -107,6 +107,7 @@ async function fanOutList(
   pageSize: number,
 ) {
   const fetchLimit = Math.min(Math.max(page * pageSize, pageSize), 5000);
+  const errors: string[] = [];
 
   const shardReads = Array.from({ length: SHARD_COUNT }, async (_, i) => {
     try {
@@ -118,7 +119,9 @@ async function fanOutList(
         .limit(fetchLimit)
         .toArray();
     } catch (err) {
-      console.error(`[shard] admin list fan-out failed on shard ${i}:`, (err as Error).message);
+      const msg = (err as Error).message;
+      console.error(`[shard] admin list fan-out failed on shard ${i}:`, msg);
+      errors.push(`shard ${i}: ${msg}`);
       return [] as any[];
     }
   });
@@ -134,17 +137,20 @@ async function fanOutList(
             .limit(fetchLimit)
             .toArray();
         } catch (err) {
-          console.error("[shard] admin list primary fallback failed:", (err as Error).message);
+          const msg = (err as Error).message;
+          console.error("[shard] admin list primary fallback failed:", msg);
+          errors.push(`primary: ${msg}`);
           return [] as any[];
         }
       })()
     : Promise.resolve([] as any[]);
 
-  const [shardResults, primaryResult, counts] = await Promise.all([
+  const [shardResults, primaryResult, countResult] = await Promise.all([
     Promise.all(shardReads),
     primaryRead,
     fanOutCount(dbName, collection, query),
   ]);
+  errors.push(...countResult.errors);
 
   const merged = new Map<string, any>();
   for (const doc of [...shardResults.flat(), ...primaryResult]) merged.set(String(doc._id), doc);
@@ -152,17 +158,27 @@ async function fanOutList(
 
   return {
     rows: all.slice((page - 1) * pageSize, page * pageSize),
-    total: counts,
+    total: countResult.total,
+    // De-duped — the count pass and the list pass often hit the same
+    // unreachable source, no need to show the same error twice.
+    errors: [...new Set(errors)],
   };
 }
 
-async function fanOutCount(dbName: string, collection: string, query: any): Promise<number> {
+async function fanOutCount(
+  dbName: string,
+  collection: string,
+  query: any,
+): Promise<{ total: number; errors: string[] }> {
+  const errors: string[] = [];
   const shardCounts = Array.from({ length: SHARD_COUNT }, async (_, i) => {
     try {
       const db = await getShardDb(i, dbName);
       return await db.collection(collection).countDocuments(query);
     } catch (err) {
-      console.error(`[shard] admin count fan-out failed on shard ${i}:`, (err as Error).message);
+      const msg = (err as Error).message;
+      console.error(`[shard] admin count fan-out failed on shard ${i}:`, msg);
+      errors.push(`shard ${i}: ${msg}`);
       return 0;
     }
   });
@@ -170,12 +186,14 @@ async function fanOutCount(dbName: string, collection: string, query: any): Prom
     ? getPrimaryDb(dbName)
         .then((db) => db.collection(collection).countDocuments(query))
         .catch((err) => {
-          console.error("[shard] admin count primary fallback failed:", (err as Error).message);
+          const msg = (err as Error).message;
+          console.error("[shard] admin count primary fallback failed:", msg);
+          errors.push(`primary: ${msg}`);
           return 0;
         })
     : Promise.resolve(0);
   const [shardTotals, primaryTotal] = await Promise.all([Promise.all(shardCounts), primaryCount]);
-  return shardTotals.reduce((sum, n) => sum + n, 0) + primaryTotal;
+  return { total: shardTotals.reduce((sum, n) => sum + n, 0) + primaryTotal, errors };
 }
 
 /** Fan-out find with no pagination — used by dashboard aggregates that
@@ -258,6 +276,7 @@ export async function listEntity(input: {
 
   let rows: any[];
   let total: number;
+  let shardErrors: string[] | undefined;
   if (isSharded(def.collection)) {
     const result = await fanOutList(
       db.databaseName,
@@ -270,6 +289,7 @@ export async function listEntity(input: {
     );
     rows = result.rows;
     total = result.total;
+    if (result.errors.length) shardErrors = result.errors;
   } else {
     const col = db.collection(def.collection);
     [rows, total] = await Promise.all([
@@ -289,6 +309,11 @@ export async function listEntity(input: {
     page,
     pageSize,
     pages: Math.max(1, Math.ceil(total / pageSize)),
+    // Present only when one or more of the 8 shards (or primary) couldn't
+    // be reached for this query — `total`/`rows` above are then a partial,
+    // not-necessarily-complete result, and the UI should say so instead of
+    // quietly showing what looks like "no data" or "less data than expected".
+    ...(shardErrors ? { shardErrors } : {}),
   };
 }
 
@@ -408,9 +433,15 @@ export async function overviewStats() {
 
   const since = new Date(Date.now() - 30 * 24 * 3600_000).toISOString();
   const dbName = db.databaseName;
+  const statsShardErrors: string[] = [];
   const [newUsers, newProducts, newSellers, recentOrders] = await Promise.all([
     isSharded("users")
-      ? fanOutCount(dbName, "users", { created_at: { $gte: since } }).catch(() => 0)
+      ? fanOutCount(dbName, "users", { created_at: { $gte: since } })
+          .then((r) => {
+            statsShardErrors.push(...r.errors);
+            return r.total;
+          })
+          .catch(() => 0)
       : db
           .collection("users")
           .countDocuments({ created_at: { $gte: since } } as any)
@@ -483,9 +514,12 @@ export async function overviewStats() {
         .countDocuments({ stock: { $gt: 0, $lte: 5 } } as any)
         .catch(() => 0),
       isSharded("orders")
-        ? fanOutCount(dbName, "orders", { status: { $in: ["pending", "processing"] } }).catch(
-            () => 0,
-          )
+        ? fanOutCount(dbName, "orders", { status: { $in: ["pending", "processing"] } })
+            .then((r) => {
+              statsShardErrors.push(...r.errors);
+              return r.total;
+            })
+            .catch(() => 0)
         : db
             .collection("orders")
             .countDocuments({ status: { $in: ["pending", "processing"] } } as any)
@@ -539,6 +573,10 @@ export async function overviewStats() {
     topProducts: plain(topProducts).map((p: any) => ({ ...p, _id: String(p._id) })),
     topSellers: plain(topSellers).map((s: any) => ({ ...s, _id: String(s._id) })),
     generatedAt: new Date().toISOString(),
+    // Surfaced on the dashboard shard strip when orders/users reads hit an
+    // unreachable shard, so "the numbers look low" has a visible reason
+    // instead of failing silently into server logs nobody's watching.
+    ...(statsShardErrors.length ? { shardErrors: [...new Set(statsShardErrors)] } : {}),
   };
 }
 
